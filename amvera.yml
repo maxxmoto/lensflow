@@ -1,11 +1,11 @@
 meta:
   name: lensflow
   environment: node
-  toolset: "20"
+  toolchain:
+    name: node
+    version: 20
 
 build:
-  dependencies:
-    - node
   commands:
     - npm install --production
 
