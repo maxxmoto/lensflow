@@ -1,8 +1,8 @@
 meta:
   environment: node
   toolchain:
-    name: "20"
-    version: latest
+    name: npm
+    version: "20"
 build:
   commands:
     - npm install --production
