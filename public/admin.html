@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель — LensFlow</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] },
+                    colors: { wf: { brown: '#73503C', dark: '#161616', beige: '#E5DFD8', gray: '#F5F5F5' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-[#111] min-h-screen font-sans antialiased">
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4" style="background: radial-gradient(ellipse at top, #73503C30 0%, #111 70%)">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <div class="font-display font-bold text-2xl tracking-wider text-white/90">LENSFLOW</div>
+                <p class="text-white/30 text-sm mt-1 tracking-wide uppercase">Администрирование</p>
+            </div>
+            <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                <div class="w-12 h-12 rounded-full bg-wf-brown/30 flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="shield" class="w-6 h-6 text-wf-brown"></i>
+                </div>
+                <h1 class="font-display text-xl font-bold text-white text-center mb-6">Доступ только для администратора</h1>
+                <form id="adminLoginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-white/50 mb-1">Логин</label>
+                        <input type="text" id="adminUser" value="admin" required
+                            class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-wf-brown transition placeholder:text-white/30">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-white/50 mb-1">Пароль</label>
+                        <input type="password" id="adminPass" required
+                            class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-wf-brown transition placeholder:text-white/30">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 rounded-xl bg-wf-brown text-white font-semibold hover:bg-wf-brown/80 transition text-sm tracking-wide uppercase">
+                        Войти
+                    </button>
+                </form>
+                <div id="adminError" class="mt-4 text-red-400 text-sm text-center hidden"></div>
+                <p class="mt-6 text-center"><a href="/" class="text-xs text-white/30 hover:text-white/60 transition">← На главную</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="hidden">
+        <nav class="bg-[#111] border-b border-white/5 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-wf-brown/30 flex items-center justify-center">
+                            <i data-lucide="shield" class="w-4 h-4 text-wf-brown"></i>
+                        </div>
+                        <span class="font-display font-bold text-lg tracking-wider text-white">LENSFLOW</span>
+                        <span class="text-white/20 text-xs ml-2 uppercase tracking-widest">Админ</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="onlineCount" class="text-white/40 text-xs"></span>
+                        <button id="adminLogout" class="text-white/30 hover:text-white text-sm transition">Выйти</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="font-display text-3xl md:text-4xl font-bold text-white uppercase tracking-tight">Панель управления</h1>
+                    <p class="text-white/30 text-sm mt-1">Общая статистика системы</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="/api/drive/setup" class="text-white/30 hover:text-wf-brown text-xs transition">Настроить Google Drive</a>
+                    <button onclick="loadStats()" class="text-white/30 hover:text-white transition">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Stats -->
+            <div id="statsCards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+
+            <!-- Secondary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <h3 class="font-display text-sm font-semibold text-white/50 uppercase tracking-wider mb-4">Гендерное распределение</h3>
+                    <div id="genderChart" class="flex items-end gap-3 h-32"></div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <h3 class="font-display text-sm font-semibold text-white/50 uppercase tracking-wider mb-4">Активность</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-white/50">Всего пользователей</span>
+                            <span id="statUsers" class="text-white font-medium">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-white/50">Всего альбомов</span>
+                            <span id="statAlbums" class="text-white font-medium">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-white/50">Всего файлов</span>
+                            <span id="statFiles" class="text-white font-medium">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-white/50">Общий объём</span>
+                            <span id="statSize" class="text-white font-medium">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-white/50">Скачиваний</span>
+                            <span id="statDownloads" class="text-white font-medium">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-white/50">Лайков</span>
+                            <span id="statLikes" class="text-white font-medium">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                <div class="p-6 border-b border-white/10 flex justify-between items-center">
+                    <h2 class="font-display text-lg font-semibold text-white">Пользователи</h2>
+                    <span id="userCount" class="text-white/30 text-sm"></span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-white/5 text-white/30 text-xs uppercase tracking-widest">
+                                <th class="text-left p-4 font-medium">Фотограф</th>
+                                <th class="text-left p-4 font-medium">Альбомов</th>
+                                <th class="text-left p-4 font-medium">Файлов</th>
+                                <th class="text-left p-4 font-medium">Скачиваний</th>
+                                <th class="text-left p-4 font-medium">Объём</th>
+                                <th class="text-left p-4 font-medium">Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function formatBytes(b) {
+            if (!b || b === 0) return '0 B';
+            const k = 1024;
+            const s = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(b) / Math.log(k));
+            return parseFloat((b / Math.pow(k, i)).toFixed(1)) + ' ' + s[i];
+        }
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const err = document.getElementById('adminError');
+            err.classList.add('hidden');
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('adminUser').value,
+                        password: document.getElementById('adminPass').value
+                    })
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error);
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('dashboardScreen').classList.remove('hidden');
+                loadStats();
+            } catch (e) {
+                document.getElementById('adminError').textContent = e.message;
+                document.getElementById('adminError').classList.remove('hidden');
+            }
+        });
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats');
+                if (!res.ok) { window.location.reload(); return; }
+                const d = await res.json();
+
+                document.getElementById('statUsers').textContent = d.total_users;
+                document.getElementById('statAlbums').textContent = d.total_albums;
+                document.getElementById('statFiles').textContent = d.total_photos;
+                document.getElementById('statSize').textContent = formatBytes(d.total_size);
+                document.getElementById('statDownloads').textContent = d.total_downloads;
+                document.getElementById('statLikes').textContent = d.total_likes;
+                document.getElementById('userCount').textContent = d.total_users + ' чел.';
+
+                document.getElementById('statsCards').innerHTML = `
+                    <div class="stat-card bg-white/5 border border-white/10 rounded-2xl p-5 cursor-default">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-wf-brown/20 flex items-center justify-center"><i data-lucide="users" class="w-5 h-5 text-wf-brown"></i></div>
+                            <p class="text-xs text-white/40 uppercase tracking-wider">Пользователи</p>
+                        </div>
+                        <p class="text-3xl font-bold text-white">${d.total_users}</p>
+                        <p class="text-xs text-white/30 mt-1">${d.male_count} муж. / ${d.female_count} жен.</p>
+                    </div>
+                    <div class="stat-card bg-white/5 border border-white/10 rounded-2xl p-5 cursor-default">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-wf-brown/20 flex items-center justify-center"><i data-lucide="folder" class="w-5 h-5 text-wf-brown"></i></div>
+                            <p class="text-xs text-white/40 uppercase tracking-wider">Альбомы</p>
+                        </div>
+                        <p class="text-3xl font-bold text-white">${d.total_albums}</p>
+                    </div>
+                    <div class="stat-card bg-white/5 border border-white/10 rounded-2xl p-5 cursor-default">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-wf-brown/20 flex items-center justify-center"><i data-lucide="image" class="w-5 h-5 text-wf-brown"></i></div>
+                            <p class="text-xs text-white/40 uppercase tracking-wider">Файлы</p>
+                        </div>
+                        <p class="text-3xl font-bold text-white">${d.total_photos}</p>
+                        <p class="text-xs text-white/30 mt-1">${formatBytes(d.total_size)}</p>
+                    </div>
+                    <div class="stat-card bg-white/5 border border-white/10 rounded-2xl p-5 cursor-default">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-wf-brown/20 flex items-center justify-center"><i data-lucide="download" class="w-5 h-5 text-wf-brown"></i></div>
+                            <p class="text-xs text-white/40 uppercase tracking-wider">Скачивания</p>
+                        </div>
+                        <p class="text-3xl font-bold text-white">${d.total_downloads}</p>
+                        <p class="text-xs text-white/30 mt-1">${d.total_likes} лайков</p>
+                    </div>
+                `;
+
+                const maxAlbums = Math.max(1, ...d.users.map(u => u.album_count));
+                const genderTotal = d.male_count + d.female_count || 1;
+                document.getElementById('genderChart').innerHTML = `
+                    <div class="flex-1 flex flex-col items-center gap-1">
+                        <div class="w-full bg-white/5 rounded-full" style="height:${d.male_count/genderTotal*100}%"></div>
+                        <span class="text-xs text-white/40">М ${d.male_count}</span>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center gap-1">
+                        <div class="w-full bg-wf-brown/50 rounded-full" style="height:${d.female_count/genderTotal*100}%"></div>
+                        <span class="text-xs text-white/40">Ж ${d.female_count}</span>
+                    </div>
+                `;
+
+                let rows = '';
+                for (const u of d.users) {
+                    const photoCount = d.total_photos; // simplified
+                    rows += `
+                        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition text-white/60">
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-wf-brown/20 flex items-center justify-center text-xs font-bold text-wf-brown">${u.name.charAt(0)}</div>
+                                    <div>
+                                        <p class="text-white font-medium">${u.name}</p>
+                                        <p class="text-white/30 text-xs">@${u.username}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4">${u.album_count}</td>
+                            <td class="p-4">—</td>
+                            <td class="p-4">${u.total_downloads}</td>
+                            <td class="p-4 font-mono text-xs">${formatBytes(u.total_storage)}</td>
+                            <td class="p-4 text-white/30 text-xs">${u.created_at.split(' ')[0]}</td>
+                        </tr>
+                    `;
+                }
+                document.getElementById('usersTableBody').innerHTML = rows;
+                lucide.createIcons();
+            } catch { window.location.reload(); }
+        }
+
+        document.getElementById('adminLogout').addEventListener('click', async () => {
+            await fetch('/api/admin/logout', { method: 'POST' });
+            window.location.reload();
+        });
+    </script>
+
+    <footer class="text-center py-6 text-white/20 text-xs border-t border-white/5 mt-10">
+        Сделано студией <a href="https://maxxmoto.github.io/vexio/" target="_blank" class="text-white/40 hover:text-white transition">Vexio</a>
+    </footer>
+</body>
+</html>

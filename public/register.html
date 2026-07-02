@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация — LensFlow</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] },
+                    colors: { wf: { brown: '#73503C', dark: '#161616', beige: '#E5DFD8', gray: '#F5F5F5' } }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-wf-dark min-h-screen flex items-center justify-center p-4 font-sans antialiased">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <a href="/" class="font-display font-bold text-2xl tracking-wider text-white">LENSFLOW</a>
+        </div>
+
+        <div class="bg-white rounded-3xl p-8 shadow-xl">
+            <h1 class="font-display text-2xl font-bold text-wf-dark mb-2">Создать аккаунт</h1>
+            <p class="text-gray-500 text-sm mb-6">Станьте частью LensFlow</p>
+
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Имя</label>
+                    <input type="text" id="name" required
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-wf-brown focus:ring-1 focus:ring-wf-brown outline-none transition text-wf-dark">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Логин</label>
+                    <input type="text" id="username" required
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-wf-brown focus:ring-1 focus:ring-wf-brown outline-none transition text-wf-dark">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Пол</label>
+                    <div class="flex gap-3">
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-gray-200 cursor-pointer transition has-[:checked]:border-wf-brown has-[:checked]:bg-wf-brown/5 hover:border-gray-300">
+                            <input type="radio" name="gender" value="male" class="hidden">
+                            <svg class="w-5 h-5 text-gray-400 has-[:checked]:text-wf-brown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><path d="M12 8v8m-4-4h8"/></svg>
+                            <span class="text-sm font-medium text-gray-600">Мужской</span>
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-gray-200 cursor-pointer transition has-[:checked]:border-wf-brown has-[:checked]:bg-wf-brown/5 hover:border-gray-300">
+                            <input type="radio" name="gender" value="female" class="hidden">
+                            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><path d="M12 8v5m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+                            <span class="text-sm font-medium text-gray-600">Женский</span>
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-gray-200 cursor-pointer transition has-[:checked]:border-wf-brown has-[:checked]:bg-wf-brown/5 hover:border-gray-300">
+                            <input type="radio" name="gender" value="" class="hidden" checked>
+                            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <span class="text-sm font-medium text-gray-600">Скрыть</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+                    <div class="relative">
+                        <input type="password" id="password" required
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-wf-brown focus:ring-1 focus:ring-wf-brown outline-none transition text-wf-dark pr-10">
+                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div id="strengthBar" class="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div id="strengthFill" class="h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p id="strengthText" class="text-xs mt-1 text-gray-400">Введите пароль</p>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                    class="w-full py-3.5 rounded-xl bg-wf-dark text-white font-semibold hover:bg-black transition text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed">
+                    Зарегистрироваться
+                </button>
+            </form>
+
+            <div id="errorMsg" class="mt-4 text-red-500 text-sm text-center hidden"></div>
+
+            <p class="mt-6 text-center text-sm text-gray-500">
+                Уже есть аккаунт?
+                <a href="/login.html" class="text-wf-brown font-medium hover:underline">Войти</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const passwordInput = document.getElementById('password');
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+        const toggleBtn = document.getElementById('togglePassword');
+        const form = document.getElementById('registerForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const submitBtn = document.getElementById('submitBtn');
+
+        toggleBtn.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            toggleBtn.innerHTML = type === 'password'
+                ? '<i data-lucide="eye" class="w-4 h-4"></i>'
+                : '<i data-lucide="eye-off" class="w-4 h-4"></i>';
+            lucide.createIcons();
+        });
+
+        passwordInput.addEventListener('input', checkStrength);
+
+        function checkStrength() {
+            const pwd = passwordInput.value;
+            let score = 0;
+
+            if (pwd.length >= 6) score += 20;
+            if (pwd.length >= 10) score += 15;
+            if (pwd.length >= 14) score += 10;
+            if (/[a-z]/.test(pwd)) score += 10;
+            if (/[A-Z]/.test(pwd)) score += 10;
+            if (/[0-9]/.test(pwd)) score += 10;
+            if (/[^a-zA-Z0-9]/.test(pwd)) score += 15;
+            if (/(.)\1{2,}/.test(pwd)) score -= 10;
+            if (/^(.{0,5})$/.test(pwd)) score = 0;
+
+            score = Math.max(0, Math.min(100, score));
+
+            strengthFill.style.width = score + '%';
+
+            if (pwd.length === 0) {
+                strengthFill.className = 'h-full rounded-full transition-all duration-300';
+                strengthFill.style.backgroundColor = '';
+                strengthText.textContent = 'Введите пароль';
+                strengthText.className = 'text-xs mt-1 text-gray-400';
+            } else if (score < 30) {
+                strengthFill.className = 'h-full rounded-full transition-all duration-300 bg-red-500';
+                strengthText.textContent = 'Слабый пароль';
+                strengthText.className = 'text-xs mt-1 text-red-500';
+            } else if (score < 60) {
+                strengthFill.className = 'h-full rounded-full transition-all duration-300 bg-amber-500';
+                strengthText.textContent = 'Средний пароль';
+                strengthText.className = 'text-xs mt-1 text-amber-600';
+            } else {
+                strengthFill.className = 'h-full rounded-full transition-all duration-300 bg-green-500';
+                strengthText.textContent = 'Надежный пароль';
+                strengthText.className = 'text-xs mt-1 text-green-600';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Регистрация...';
+
+            const data = {
+                name: document.getElementById('name').value,
+                username: document.getElementById('username').value,
+                gender: document.querySelector('input[name="gender"]:checked')?.value || '',
+                password: passwordInput.value
+            };
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(json.error || 'Ошибка регистрации');
+                }
+
+                window.location.href = '/dashboard.html';
+            } catch (err) {
+                errorMsg.textContent = err.message;
+                errorMsg.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Зарегистрироваться';
+            }
+        });
+    </script>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-wf-dark/95 border border-white/20 text-white px-5 py-3 rounded-xl shadow-2xl backdrop-blur-xl transition-all duration-300 opacity-0 translate-y-4 pointer-events-none text-sm font-medium whitespace-nowrap"></div>
+
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg || 'Скопировано';
+            t.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            t.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                t.classList.remove('opacity-100', 'translate-y-0');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

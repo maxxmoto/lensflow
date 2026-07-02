@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Альбом — LensFlow</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] },
+                    colors: { wf: { brown: '#73503C', dark: '#161616', beige: '#E5DFD8', gray: '#F5F5F5' } }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-wf-dark min-h-screen font-sans antialiased">
+    <nav class="bg-wf-dark border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/dashboard.html" class="font-display font-bold text-xl tracking-wider text-white">LENSFLOW</a>
+                <div class="flex items-center gap-4">
+                    <a href="/dashboard.html" class="text-white/50 hover:text-white text-sm transition">← Назад</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 py-10">
+        <div id="albumHeader" class="mb-8">
+            <h1 class="font-display text-3xl font-bold text-white uppercase tracking-tight" id="albumTitle">Загрузка...</h1>
+            <p class="text-white/50 text-sm mt-1" id="albumDesc"></p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <h2 class="font-display text-lg font-semibold text-white mb-4">Загрузить фото</h2>
+
+                    <div id="dropZone" class="border-2 border-dashed border-white/20 rounded-xl p-8 md:p-10 text-center cursor-pointer hover:border-wf-brown transition">
+                        <i data-lucide="upload" class="w-10 h-10 mx-auto text-white/30 mb-3"></i>
+                        <p class="text-white/50 text-sm">Перетащите фото сюда или нажмите для выбора</p>
+                        <p class="text-white/30 text-xs mt-1">JPG, PNG, WebP, RAW — до 100MB</p>
+                        <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                    </div>
+
+                    <div id="uploadProgress" class="hidden mt-4">
+                        <div class="flex items-center gap-3 text-sm text-white/60 mb-2">
+                            <div id="uploadStatusIcon" class="w-4 h-4 rounded-full border-2 border-wf-brown border-t-transparent animate-spin hidden"></div>
+                            <span id="uploadStatus">Загрузка...</span>
+                            <span id="uploadCount" class="text-white/40"></span>
+                        </div>
+                        <div class="h-2 rounded-full bg-white/10 overflow-hidden">
+                            <div id="progressBar" class="h-full rounded-full bg-wf-brown transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p id="uploadFileList" class="text-xs text-white/30 mt-1 truncate"></p>
+                    </div>
+
+                    <div id="photosGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6"></div>
+                    <div id="noPhotos" class="text-center py-10 text-white/30 hidden">
+                        <i data-lucide="image" class="w-12 h-12 mx-auto mb-3"></i>
+                        <p>Фото пока нет</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 sticky top-24">
+                    <h2 class="font-display text-lg font-semibold text-white mb-4">Сформировать альбом</h2>
+
+                    <div id="stats" class="text-sm text-white/50 mb-6">
+                        <p>Загружено: <span id="photoCount" class="text-white">0</span> фото</p>
+                    </div>
+
+                    <button id="generateBtn"
+                        class="w-full py-3.5 rounded-xl bg-wf-brown text-white font-semibold hover:bg-wf-brown/80 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        Сформировать альбом
+                    </button>
+
+                    <div id="shareBlock" class="hidden mt-6 pt-6 border-t border-white/10">
+                        <div class="bg-white/10 rounded-xl p-4 mb-4">
+                            <p class="text-xs text-white/40 mb-1">Ссылка на галерею</p>
+                            <div class="flex gap-1">
+                                <input type="text" id="albumLink" readonly
+                                    class="flex-1 bg-white/5 rounded-lg px-3 py-2 text-xs text-white/70 outline-none font-mono">
+                                <button onclick="copyText('albumLink')"
+                                    class="px-3 py-2 bg-wf-brown/30 rounded-lg text-wf-brown text-xs hover:bg-wf-brown/50 transition">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="text-xs text-white/40 mb-1">Пароль для клиента</p>
+                            <div class="flex gap-1">
+                                <input type="text" id="albumPassword" readonly
+                                    class="flex-1 bg-white/5 rounded-lg px-3 py-2 text-sm text-white font-mono tracking-widest outline-none">
+                                <button onclick="copyText('albumPassword')"
+                                    class="px-3 py-2 bg-wf-brown/30 rounded-lg text-wf-brown text-xs hover:bg-wf-brown/50 transition">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-black/95 hidden items-center justify-center p-4" onclick="closeLightbox(event)">
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white/60 hover:text-white transition z-10">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <button onclick="prevPhoto()" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition z-10">
+            <i data-lucide="chevron-left" class="w-10 h-10"></i>
+        </button>
+        <button onclick="nextPhoto()" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition z-10">
+            <i data-lucide="chevron-right" class="w-10 h-10"></i>
+        </button>
+        <div id="lightboxContent" class="flex flex-col items-center max-w-5xl w-full" onclick="event.stopPropagation()">
+            <img id="lightboxImg" src="" alt="" class="max-w-full max-h-[85vh] object-contain rounded-2xl">
+            <p id="lightboxCaption" class="text-white/50 text-sm mt-4"></p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const albumId = new URLSearchParams(window.location.search).get('id');
+        if (!albumId) { window.location.href = '/dashboard.html'; }
+
+        let album = null;
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const photosGrid = document.getElementById('photosGrid');
+        const noPhotos = document.getElementById('noPhotos');
+        const progressBar = document.getElementById('progressBar');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const uploadCount = document.getElementById('uploadCount');
+
+        async function loadAlbum() {
+            try {
+                const res = await fetch('/api/albums/' + albumId);
+                if (!res.ok) { window.location.href = '/dashboard.html'; return; }
+                const json = await res.json();
+                album = json.album;
+
+                document.getElementById('albumTitle').textContent = album.title;
+                document.getElementById('albumDesc').textContent = album.description || '';
+
+                document.getElementById('photoCount').textContent = json.photos.length;
+
+                if (album.is_generated) {
+                    document.getElementById('shareBlock').classList.remove('hidden');
+                    document.getElementById('albumLink').value = window.location.origin + '/gallery/' + album.slug;
+                    document.getElementById('albumPassword').value = album.password;
+                    document.getElementById('generateBtn').textContent = 'Ссылка уже сгенерирована';
+                    document.getElementById('generateBtn').disabled = true;
+                }
+
+                renderPhotos(json.photos);
+                lucide.createIcons();
+            } catch { window.location.href = '/dashboard.html'; }
+        }
+
+        function renderPhotos(photos) {
+            if (photos.length === 0) {
+                photosGrid.innerHTML = '';
+                noPhotos.classList.remove('hidden');
+                return;
+            }
+
+            noPhotos.classList.add('hidden');
+            const coverId = album.cover_photo_id;
+            let html = '';
+            for (const photo of photos) {
+                const src = '/api/photo/' + albumId + '/' + photo.filename;
+                const isCover = photo.id === coverId;
+                html += `
+                    <div class="relative group rounded-xl overflow-hidden bg-white/5 cursor-pointer ${isCover ? 'ring-2 ring-wf-brown' : ''}" onclick="openLightbox(${photo.id})">
+                        ${isCover ? '<div class="absolute top-2 left-2 z-10 bg-wf-brown text-white text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">Обложка</div>' : ''}
+                        <img src="${src}" alt="${photo.original_name}"
+                            class="w-full h-40 object-cover"
+                            onerror="this.parentElement.innerHTML='<div class=\\'w-full h-40 flex items-center justify-center text-white/30 text-xs\\'>Ошибка</div>'">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <div class="flex gap-2">
+                                <button onclick="event.stopPropagation(); openLightbox(${photo.id})" class="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition">
+                                    <i data-lucide="eye" class="w-4 h-4 text-white"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); setCover(${photo.id})" class="p-2 bg-wf-brown/80 rounded-lg hover:bg-wf-brown transition">
+                                    <i data-lucide="image" class="w-4 h-4 text-white"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); deletePhoto(${photo.id})" class="p-2 bg-red-500/80 rounded-lg hover:bg-red-500 transition">
+                                    <i data-lucide="trash-2" class="w-4 h-4 text-white"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                            <p class="text-xs text-white/80 truncate">${photo.original_name}</p>
+                            <div class="flex gap-3 text-xs text-white/50 mt-1">
+                                <span>${photo.downloads || 0} скач.</span>
+                                <span class="font-mono">${(photo.size / 1024 / 1024).toFixed(1)} MB</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            photosGrid.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        async function setCover(photoId) {
+            try {
+                const res = await fetch('/api/albums/' + albumId + '/cover', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo_id: photoId })
+                });
+                if (!res.ok) { const j = await res.json(); throw new Error(j.error); }
+                showToast('Обложка установлена');
+                loadAlbum();
+            } catch (err) { alert(err.message); }
+        }
+
+        let allPhotoIds = [];
+        let currentPhotoIndex = 0;
+
+        function collectPhotoIds() {
+            allPhotoIds = [];
+            document.querySelectorAll('#photosGrid > div').forEach((el) => {
+                const match = el.getAttribute('onclick') && el.getAttribute('onclick').match(/openLightbox\((\d+)\)/);
+                if (match) allPhotoIds.push(parseInt(match[1]));
+            });
+        }
+
+        function openLightbox(photoId) {
+            collectPhotoIds();
+            const idx = allPhotoIds.indexOf(photoId);
+            if (idx === -1) return;
+            currentPhotoIndex = idx;
+            showLightboxPhoto(photoId);
+        }
+
+        async function showLightboxPhoto(photoId) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightboxImg');
+            const cap = document.getElementById('lightboxCaption');
+            if (!lightbox || !img) return;
+
+            try {
+                const res = await fetch('/api/albums/' + albumId);
+                const json = await res.json();
+                const photo = json.photos.find(p => p.id === photoId);
+                if (!photo) return;
+
+                img.src = '/api/photo/' + albumId + '/' + photo.filename;
+                if (cap) cap.textContent = photo.original_name + ' — ' + (photo.size / 1024 / 1024).toFixed(1) + ' MB';
+                lightbox.classList.remove('hidden');
+                lightbox.classList.add('flex');
+                lucide.createIcons();
+            } catch {}
+        }
+
+        function closeLightbox(e) {
+            if (e && e.target !== e.currentTarget) return;
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox) {
+                lightbox.classList.add('hidden');
+                lightbox.classList.remove('flex');
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') navigatePhoto(-1);
+            if (e.key === 'ArrowRight') navigatePhoto(1);
+        });
+
+        function prevPhoto() { navigatePhoto(-1); }
+        function nextPhoto() { navigatePhoto(1); }
+        function navigatePhoto(direction) {
+            if (allPhotoIds.length === 0) return;
+            currentPhotoIndex = (currentPhotoIndex + direction + allPhotoIds.length) % allPhotoIds.length;
+            showLightboxPhoto(allPhotoIds[currentPhotoIndex]);
+        }
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-wf-brown', 'bg-wf-brown/10');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-wf-brown', 'bg-wf-brown/10');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-wf-brown', 'bg-wf-brown/10');
+            if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) uploadFiles(fileInput.files);
+        });
+
+        async function uploadFiles(files) {
+            const total = files.length;
+            const fileNames = Array.from(files).map(f => f.name).join(', ');
+            const sizeMB = (Array.from(files).reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(1);
+
+            uploadProgress.classList.remove('hidden');
+            document.getElementById('uploadStatusIcon').classList.remove('hidden');
+            uploadStatus.textContent = 'Загрузка ' + total + ' файлов...';
+            uploadCount.textContent = '0 / ' + total + ' (' + sizeMB + ' MB)';
+            uploadFileList.textContent = fileNames.length > 80 ? fileNames.slice(0, 80) + '...' : fileNames;
+            progressBar.style.width = '10%';
+
+            const formData = new FormData();
+            for (const file of files) {
+                formData.append('photos', file);
+            }
+
+            let progressInterval = setInterval(() => {
+                const curr = parseFloat(progressBar.style.width) || 10;
+                if (curr < 80) progressBar.style.width = Math.min(curr + 5, 80) + '%';
+            }, 500);
+
+            try {
+                const res = await fetch('/api/albums/' + albumId + '/photos', {
+                    method: 'POST',
+                    body: formData
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error);
+
+                clearInterval(progressInterval);
+                const completed = json.photos.length;
+                progressBar.style.width = '100%';
+                uploadCount.textContent = completed + ' / ' + completed + ' (' + sizeMB + ' MB)';
+                uploadStatus.textContent = '✅ Загружено ' + completed + ' файлов';
+                document.getElementById('uploadStatusIcon').classList.add('hidden');
+
+                setTimeout(() => {
+                    uploadProgress.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                    uploadFileList.textContent = '';
+                }, 3000);
+
+                loadAlbum();
+            } catch (err) {
+                clearInterval(progressInterval);
+                uploadStatus.textContent = '❌ ' + err.message;
+                progressBar.style.width = '0%';
+                document.getElementById('uploadStatusIcon').classList.add('hidden');
+            }
+
+            fileInput.value = '';
+        }
+
+        async function deletePhoto(photoId) {
+            if (!confirm('Удалить это фото?')) return;
+            try {
+                await fetch('/api/photos/' + photoId, { method: 'DELETE' });
+                loadAlbum();
+            } catch { alert('Ошибка удаления'); }
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Генерация...';
+
+            try {
+                const res = await fetch('/api/albums/' + albumId + '/generate', { method: 'POST' });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error);
+
+                document.getElementById('shareBlock').classList.remove('hidden');
+                document.getElementById('albumLink').value = json.link;
+                document.getElementById('albumPassword').value = json.password;
+                btn.textContent = 'Готово ✓';
+                loadAlbum();
+            } catch (err) {
+                alert(err.message);
+                btn.disabled = false;
+                btn.textContent = 'Сформировать альбом';
+            }
+        });
+
+        function copyText(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            navigator.clipboard.writeText(input.value).then(() => {
+                showToast('Скопировано');
+                const btn = event && event.target && event.target.closest && event.target.closest('button');
+                if (btn) {
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+                    lucide.createIcons();
+                    setTimeout(() => { btn.innerHTML = original; lucide.createIcons(); }, 2000);
+                }
+            });
+        }
+
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scrollTop');
+            if (!btn) return;
+            if (window.scrollY > 400) {
+                btn.classList.remove('opacity-0', 'pointer-events-none');
+                btn.classList.add('opacity-100', 'pointer-events-auto');
+            } else {
+                btn.classList.add('opacity-0', 'pointer-events-none');
+                btn.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+        });
+
+        loadAlbum();
+    </script>
+
+    <button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" class="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-wf-brown/80 backdrop-blur border border-white/20 text-white flex items-center justify-center hover:bg-wf-brown transition shadow-lg opacity-0 pointer-events-none">
+        <i data-lucide="chevron-up" class="w-5 h-5"></i>
+    </button>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-wf-dark/95 border border-white/20 text-white px-5 py-3 rounded-xl shadow-2xl backdrop-blur-xl transition-all duration-300 opacity-0 translate-y-4 pointer-events-none text-sm font-medium whitespace-nowrap"></div>
+
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg || 'Скопировано';
+            t.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            t.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                t.classList.remove('opacity-100', 'translate-y-0');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

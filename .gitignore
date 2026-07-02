@@ -1,0 +1,10 @@
+node_modules/
+uploads/
+*.db
+*.db-shm
+*.db-wal
+drive_tokens.json
+*.log
+.env
+client_secret_*.json
+sodium-surf-*.json

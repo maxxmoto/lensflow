@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приватная галерея — LensFlow</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] },
+                    colors: { wf: { brown: '#73503C', dark: '#161616', beige: '#E5DFD8', gray: '#F5F5F5' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .animate-shake { animation: shake 0.3s ease-in-out; }
+        .photo-card { animation: fadeIn 0.4s ease-out forwards; opacity: 0; }
+        .photo-card:nth-child(1) { animation-delay: 0.05s; }
+        .photo-card:nth-child(2) { animation-delay: 0.1s; }
+        .photo-card:nth-child(3) { animation-delay: 0.15s; }
+        .photo-card:nth-child(4) { animation-delay: 0.2s; }
+        .photo-card:nth-child(5) { animation-delay: 0.25s; }
+        .photo-card:nth-child(6) { animation-delay: 0.3s; }
+        .photo-card:nth-child(7) { animation-delay: 0.35s; }
+        .photo-card:nth-child(8) { animation-delay: 0.4s; }
+        .photo-card:nth-child(9) { animation-delay: 0.45s; }
+        .photo-card:nth-child(10) { animation-delay: 0.5s; }
+        .image-overlay-brown { background: linear-gradient(to bottom, rgba(115, 80, 60, 0.4), rgba(115, 80, 60, 0.85)); }
+    </style>
+</head>
+<body class="bg-wf-dark min-h-screen font-sans antialiased">
+
+    <!-- Password Screen -->
+    <div id="passwordScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-wf-dark">
+        <div class="absolute inset-0 z-0">
+            <img id="bgImg" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=2000" alt="" class="w-full h-full object-cover mix-blend-overlay opacity-30">
+            <div class="absolute inset-0 image-overlay-brown"></div>
+        </div>
+
+        <div class="relative z-10 w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <div class="font-display font-bold text-2xl tracking-wider text-white/80 mb-6">LENSFLOW</div>
+                <div class="w-16 h-16 rounded-full bg-white/10 backdrop-blur flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="lock" class="w-6 h-6 text-white/70"></i>
+                </div>
+                <h1 class="font-display text-2xl font-bold text-white mb-1">Приватная галерея</h1>
+                <p id="galleryTitle" class="text-white/50 text-sm">Загрузка...</p>
+            </div>
+
+            <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8">
+                <p class="text-white/60 text-sm text-center mb-6">Введите пароль, полученный от фотографа</p>
+
+                <form id="passwordForm" class="space-y-4">
+                    <div>
+                        <input type="password" id="albumPassword" required placeholder="Пароль"
+                            class="w-full px-4 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white text-center tracking-[0.3em] placeholder:text-white/30 placeholder:tracking-normal outline-none focus:border-wf-brown transition">
+                    </div>
+                    <button type="submit" id="pwdSubmitBtn"
+                        class="w-full py-3.5 rounded-xl bg-white text-wf-dark font-semibold hover:bg-white/90 transition text-sm tracking-wide disabled:opacity-50">
+                        Открыть галерею
+                    </button>
+                </form>
+
+                <div id="pwdError" class="mt-4 text-red-400 text-sm text-center hidden"></div>
+            </div>
+
+            <p class="text-white/30 text-xs text-center mt-6">Powered by LensFlow</p>
+        </div>
+    </div>
+
+    <!-- Gallery Content -->
+    <div id="galleryContent" class="hidden">
+        <nav class="bg-wf-dark/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <span class="font-display font-bold text-xl tracking-wider text-white">LENSFLOW</span>
+                    <span id="galleryTitleNav" class="text-white/60 text-sm"></span>
+                </div>
+            </div>
+        </nav>
+
+        <div id="coverBanner" class="relative hidden h-48 md:h-64 overflow-hidden">
+            <img id="coverBannerImg" src="" alt="" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-wf-dark via-wf-dark/50 to-transparent"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10">
+            <div class="mb-10">
+                <h1 class="font-display text-3xl md:text-4xl font-bold text-white uppercase tracking-tight" id="galleryTitleMain"></h1>
+                <p class="text-white/50 text-sm mt-2" id="galleryDesc"></p>
+                <div class="flex flex-wrap items-center gap-3 mt-4">
+                    <a id="downloadAllBtn" href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white/80 hover:text-white hover:bg-white/20 transition text-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Скачать всё ZIP
+                    </a>
+                </div>
+            </div>
+
+            <div id="photosContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+            <div id="noPhotosMsg" class="hidden text-center py-20 text-white/30">
+                <i data-lucide="image-off" class="w-16 h-16 mx-auto mb-4"></i>
+                <p>В этой галерее пока нет фото</p>
+            </div>
+        </div>
+
+        <footer class="border-t border-white/10 py-8 mt-10">
+            <div class="max-w-7xl mx-auto px-5 text-center text-white/30 text-xs">Сделано студией <a href="https://maxxmoto.github.io/vexio/" target="_blank" class="text-white/40 hover:text-white transition">Vexio</a></div>
+        </footer>
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-black/95 hidden items-center justify-center p-4">
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white/60 hover:text-white transition z-10">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <div id="lightboxContent" class="max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
+            <img id="lightboxImg" src="" alt="" class="max-w-full max-h-[75vh] object-contain rounded-2xl">
+            <div class="flex items-center gap-6 mt-6">
+                <button id="lightboxLike" onclick="likePhoto()" class="flex items-center gap-2 text-white/60 hover:text-red-400 transition">
+                    <i data-lucide="heart" class="w-6 h-6"></i>
+                    <span id="lightboxLikes" class="text-sm">0</span>
+                </button>
+                <button onclick="downloadPhoto()" class="flex items-center gap-2 text-white/60 hover:text-white transition">
+                    <i data-lucide="download" class="w-6 h-6"></i>
+                    <span class="text-sm">Скачать</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const slug = window.location.pathname.split('/').pop();
+        if (!slug) { document.body.innerHTML = '<div class="text-center py-20 text-white">Галерея не найдена</div>'; }
+
+        let currentAlbum = null;
+        let currentPhotos = [];
+        let likedPhotos = [];
+        let currentPhotoId = null;
+
+        async function init() {
+            try {
+                const res = await fetch('/api/gallery/' + slug);
+                if (!res.ok) { document.body.innerHTML = '<div class="text-center py-20 text-white/60"><p class="text-2xl mb-4">404</p><p>Галерея не найдена</p></div>'; return; }
+                const json = await res.json();
+                currentAlbum = json.album;
+                document.getElementById('galleryTitle').textContent = json.album.title;
+            } catch {
+                document.body.innerHTML = '<div class="text-center py-20 text-white/60">Ошибка загрузки</div>';
+            }
+        }
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pwdInput = document.getElementById('albumPassword');
+            const errorEl = document.getElementById('pwdError');
+            const btn = document.getElementById('pwdSubmitBtn');
+            errorEl.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'Проверка...';
+
+            try {
+                const res = await fetch('/api/gallery/' + slug + '/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwdInput.value })
+                });
+                const json = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(json.error || 'Неверный пароль');
+                }
+
+                currentAlbum = json.album;
+                currentPhotos = json.photos;
+                likedPhotos = json.liked_photos || [];
+
+                document.getElementById('passwordScreen').classList.add('hidden');
+                document.getElementById('galleryContent').classList.remove('hidden');
+                document.getElementById('galleryTitleNav').textContent = json.album.title;
+                document.getElementById('galleryTitleMain').textContent = json.album.title;
+                document.getElementById('galleryDesc').textContent = json.album.description || 'Приватная галерея';
+                document.getElementById('downloadAllBtn').href = '/api/gallery/' + slug + '/download-all';
+
+                const coverBanner = document.getElementById('coverBanner');
+                const coverBannerImg = document.getElementById('coverBannerImg');
+                if (json.album.cover_filename) {
+                    coverBannerImg.src = '/api/photo/' + json.album.id + '/' + json.album.cover_filename;
+                    coverBanner.classList.remove('hidden');
+                } else {
+                    coverBanner.classList.add('hidden');
+                }
+
+                renderPhotos();
+                lucide.createIcons();
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.remove('hidden');
+                document.getElementById('albumPassword').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('albumPassword').classList.remove('animate-shake'), 300);
+                btn.disabled = false;
+                btn.textContent = 'Открыть галерею';
+            }
+        });
+
+        function renderPhotos() {
+            const container = document.getElementById('photosContainer');
+
+            if (currentPhotos.length === 0) {
+                container.innerHTML = '';
+                document.getElementById('noPhotosMsg').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('noPhotosMsg').classList.add('hidden');
+
+            let html = '';
+            for (const photo of currentPhotos) {
+                const src = '/api/photo/' + currentAlbum.id + '/' + photo.filename;
+                const isLiked = likedPhotos.includes(photo.id);
+                html += `
+                    <div class="photo-card group relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/30 transition cursor-pointer"
+                        onclick="openLightbox(${photo.id})">
+                        <img src="${src}" alt="${photo.original_name}"
+                            class="w-full h-56 md:h-64 object-cover"
+                            onerror="this.parentElement.innerHTML='<div class=\\'w-full h-56 md:h-64 flex items-center justify-center text-white/30 text-xs\\'>Не удалось загрузить</div>'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
+                            <div class="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                                <button onclick="event.stopPropagation(); toggleLike(${photo.id})" class="flex items-center gap-1.5 text-white/80 hover:text-red-400 transition text-sm">
+                                    <i data-lucide="${isLiked ? 'heart' : 'heart'}" class="w-5 h-5 ${isLiked ? 'fill-red-400 text-red-400' : ''}"></i>
+                                    <span>${photo.likes_count}</span>
+                                </button>
+                                <a href="/api/photos/${photo.id}/download" onclick="event.stopPropagation()"
+                                    class="flex items-center gap-1.5 text-white/80 hover:text-white transition text-sm bg-white/10 rounded-lg px-3 py-1.5 backdrop-blur">
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                    <span>${photo.downloads}</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function openLightbox(photoId) {
+            const photo = currentPhotos.find(p => p.id === photoId);
+            if (!photo) return;
+            currentPhotoId = photoId;
+
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightboxImg');
+            if (!lightbox || !img) return;
+
+            const src = '/api/photo/' + currentAlbum.id + '/' + photo.filename;
+            img.src = src;
+            const likesEl = document.getElementById('lightboxLikes');
+            if (likesEl) likesEl.textContent = photo.likes_count;
+
+            const likeIcon = document.getElementById('lightboxLike');
+            if (likeIcon) {
+                const icon = likeIcon.querySelector('i');
+                const isLiked = likedPhotos.includes(photoId);
+                if (icon) icon.className = 'w-6 h-6' + (isLiked ? ' fill-red-400 text-red-400' : '');
+            }
+
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox) {
+                lightbox.classList.add('hidden');
+                lightbox.classList.remove('flex');
+            }
+            currentPhotoId = null;
+        }
+
+        const lightboxEl = document.getElementById('lightbox');
+        if (lightboxEl) {
+            lightboxEl.addEventListener('click', (e) => {
+                if (e.target === lightboxEl) closeLightbox();
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        async function likePhoto() {
+            if (!currentPhotoId) return;
+            try {
+                const res = await fetch('/api/photos/' + currentPhotoId + '/like', { method: 'POST' });
+                const json = await res.json();
+                document.getElementById('lightboxLikes').textContent = json.likes_count;
+
+                const likeIcon = document.getElementById('lightboxLike').querySelector('i');
+                if (json.liked) {
+                    likeIcon.className = 'w-6 h-6 fill-red-400 text-red-400';
+                    likedPhotos.push(currentPhotoId);
+                } else {
+                    likeIcon.className = 'w-6 h-6';
+                    likedPhotos = likedPhotos.filter(id => id !== currentPhotoId);
+                }
+
+                const photo = currentPhotos.find(p => p.id === currentPhotoId);
+                if (photo) photo.likes_count = json.likes_count;
+
+                renderPhotos();
+                lucide.createIcons();
+            } catch {}
+        }
+
+        async function toggleLike(photoId) {
+            try {
+                const res = await fetch('/api/photos/' + photoId + '/like', { method: 'POST' });
+                const json = await res.json();
+
+                if (json.liked) {
+                    likedPhotos.push(photoId);
+                } else {
+                    likedPhotos = likedPhotos.filter(id => id !== photoId);
+                }
+
+                const photo = currentPhotos.find(p => p.id === photoId);
+                if (photo) photo.likes_count = json.likes_count;
+
+                renderPhotos();
+                lucide.createIcons();
+            } catch {}
+        }
+
+        function downloadPhoto() {
+            if (!currentPhotoId) return;
+            window.open('/api/photos/' + currentPhotoId + '/download', '_blank');
+        }
+
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scrollTop');
+            if (!btn) return;
+            if (window.scrollY > 400) {
+                btn.classList.remove('opacity-0', 'pointer-events-none');
+                btn.classList.add('opacity-100', 'pointer-events-auto');
+            } else {
+                btn.classList.add('opacity-0', 'pointer-events-none');
+                btn.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+        });
+
+        init();
+    </script>
+
+    <button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" class="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-wf-brown/80 backdrop-blur border border-white/20 text-white flex items-center justify-center hover:bg-wf-brown transition shadow-lg opacity-0 pointer-events-none">
+        <i data-lucide="chevron-up" class="w-5 h-5"></i>
+    </button>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-wf-dark/95 border border-white/20 text-white px-5 py-3 rounded-xl shadow-2xl backdrop-blur-xl transition-all duration-300 opacity-0 translate-y-4 pointer-events-none text-sm font-medium whitespace-nowrap"></div>
+
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg || 'Скопировано';
+            t.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            t.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                t.classList.remove('opacity-100', 'translate-y-0');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

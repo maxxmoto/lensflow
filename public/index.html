@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LensFlow — Облачные Галереи для Фотографов</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] },
+                    colors: { wf: { brown: '#73503C', dark: '#161616', beige: '#E5DFD8', gray: '#F5F5F5' } },
+                    boxShadow: { 'mockup': '0 25px 50px -12px rgba(0, 0, 0, 0.35)' }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+        @keyframes float-delayed { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        .animate-float { animation: float 6s ease-in-out infinite }
+        .animate-float-delayed { animation: float-delayed 7s ease-in-out infinite; animation-delay: 2s }
+        .image-overlay-brown { background: linear-gradient(to bottom, rgba(115,80,60,0.4), rgba(115,80,60,0.85)) }
+        .image-overlay-beige { background: linear-gradient(to bottom, rgba(229,223,216,0.6), rgba(229,223,216,0.9)) }
+    </style>
+</head>
+<body class="bg-wf-dark text-white font-sans antialiased selection:bg-white selection:text-wf-dark">
+
+    <!-- Mobile Nav (только на мобилке) -->
+    <div class="fixed top-0 left-0 right-0 z-50 lg:hidden">
+        <div class="flex justify-between items-center px-5 py-4">
+            <a href="/login.html" class="px-4 py-2 rounded-full border border-white/60 text-white text-sm font-medium backdrop-blur-sm bg-white/10 hover:bg-white/20 transition">Войти</a>
+            <button id="menuBtn" class="text-white focus:outline-none">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div id="mobileMenu" class="hidden bg-wf-dark/95 backdrop-blur-md border-t border-white/10 px-5 py-4 space-y-3">
+            <a href="#features" class="block text-white/80 hover:text-white text-sm font-medium transition">О сервисе</a>
+            <a href="#benefits" class="block text-white/80 hover:text-white text-sm font-medium transition">Преимущества</a>
+            <a href="/register.html" class="block text-white/80 hover:text-white text-sm font-medium transition">Регистрация</a>
+        </div>
+    </div>
+
+    <!-- Mobile Hero (только на мобилке) -->
+    <section class="relative h-dvh flex flex-col lg:hidden overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="/nachalo.webp" alt="" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-wf-dark/90 via-wf-dark/30 to-transparent"></div>
+        </div>
+        <div class="relative z-10 flex flex-col justify-end h-full pb-16 px-6 text-center">
+            <a href="/register.html" class="w-full py-4 rounded-full bg-white text-wf-dark font-semibold text-sm tracking-wide uppercase shadow-lg hover:bg-white/90 transition">
+                Начать работу
+            </a>
+        </div>
+    </section>
+
+    <!-- Desktop Nav (только на пк) -->
+    <nav class="fixed w-full z-50 transition-all duration-300 bg-transparent hidden lg:block" id="navbar">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div class="relative flex items-center h-16">
+                <div class="flex-1"></div>
+                <div class="flex items-center space-x-10">
+                    <a href="#features" class="text-white/80 hover:text-white text-sm font-medium transition">О сервисе</a>
+                    <a href="#benefits" class="text-white/80 hover:text-white text-sm font-medium transition">Преимущества</a>
+                </div>
+                <div class="flex-1"></div>
+                <a href="/login.html" class="absolute right-0 px-6 py-2 rounded-full border border-white/60 text-white text-sm font-medium hover:bg-white hover:text-wf-dark transition">Войти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Desktop Hero (только на пк) -->
+    <section class="relative min-h-screen hidden lg:block bg-wf-dark overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="/pc.webp" alt="" class="w-full h-full object-cover">
+        </div>
+    </section>
+
+    <section id="features" class="py-20 md:py-24 bg-wf-dark">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <h2 class="font-display text-2xl md:text-5xl font-bold text-white mb-10 md:mb-16 uppercase tracking-tight max-w-2xl leading-tight">ВСЁ, ЧТО НУЖНО<br>ФОТОГРАФУ, В ОДНОМ МЕСТЕ</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-20">
+                <div class="border-t border-white/20 pt-6 md:pt-8">
+                    <span class="text-white/50 text-sm font-mono mb-3 block">01</span>
+                    <h3 class="font-display text-xl md:text-2xl font-bold text-white mb-3 uppercase tracking-wider">ПРОЕКТЫ</h3>
+                    <p class="text-white/70 text-base leading-relaxed font-light">Создавайте отдельные папки для каждой съемки. Структурируйте свою работу так, как удобно вам.</p>
+                </div>
+                <div class="border-t border-white/20 pt-6 md:pt-8">
+                    <span class="text-white/50 text-sm font-mono mb-3 block">02</span>
+                    <h3 class="font-display text-xl md:text-2xl font-bold text-white mb-3 uppercase tracking-wider">ЗАЩИТА И ПАРОЛИ</h3>
+                    <p class="text-white/70 text-base leading-relaxed font-light">Система автоматически генерирует надежный пароль после загрузки фото. Клиент видит только свои кадры.</p>
+                </div>
+                <div class="border-t border-white/20 pt-6 md:pt-8">
+                    <span class="text-white/50 text-sm font-mono mb-3 block">03</span>
+                    <h3 class="font-display text-xl md:text-2xl font-bold text-white mb-3 uppercase tracking-wider">БЫСТРАЯ ЗАГРУЗКА</h3>
+                    <p class="text-white/70 text-base leading-relaxed font-light">Облачный диск, созданный специально для тяжелых файлов. Поддержка RAW и моментальная генерация превью.</p>
+                </div>
+                <div class="border-t border-white/20 pt-6 md:pt-8">
+                    <span class="text-white/50 text-sm font-mono mb-3 block">04</span>
+                    <h3 class="font-display text-xl md:text-2xl font-bold text-white mb-3 uppercase tracking-wider">ЭСТЕТИКА</h3>
+                    <p class="text-white/70 text-base leading-relaxed font-light">Клиент получает не просто ссылку на диск, а красивую галерею, адаптированную под мобильные устройства.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="relative py-20 md:py-24 lg:py-32 bg-wf-beige overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=2000" alt="" class="w-full h-full object-cover object-center mix-blend-multiply opacity-30">
+            <div class="absolute inset-0 image-overlay-beige"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
+            <h2 class="font-display text-2xl md:text-5xl font-bold text-wf-dark mb-4 md:mb-6 uppercase tracking-tight max-w-2xl leading-tight">СЕРВИС, КОТОРЫЙ<br>ВСЕХ ВПЕЧАТЛЯЕТ</h2>
+            <p class="text-wf-dark/70 text-base md:text-lg lg:text-xl max-w-2xl mb-8 md:mb-12 font-light leading-relaxed">Мы позаботились о том, чтобы вы могли легко передать готовый материал без лишних действий. Занимайтесь творчеством, рутину мы берём на себя.</p>
+            <div class="relative w-full max-w-3xl mx-auto mt-10 md:mt-24 perspective-1000">
+                <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100 transform lg:rotate-1 lg:hover:rotate-0 transition-transform duration-500">
+                    <div class="bg-wf-gray px-6 py-8 text-center border-b border-gray-100 relative">
+                        <div class="absolute top-4 left-4 flex gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                        </div>
+                        <p class="font-display text-xs uppercase tracking-widest text-gray-400 mb-2 mt-4">Приватная галерея</p>
+                        <h3 class="font-display text-xl md:text-2xl font-semibold text-wf-dark">День Рождения Катя</h3>
+                    </div>
+                    <div class="p-6 md:p-8 lg:p-12 flex flex-col items-center bg-white relative">
+                        <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        <div class="w-14 h-14 md:w-16 md:h-16 rounded-full bg-wf-gray flex items-center justify-center text-wf-dark mb-4 md:mb-6 relative z-10"><i data-lucide="lock" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                        <p class="text-gray-500 text-sm mb-4 md:mb-6 relative z-10">Введите пароль, полученный от фотографа</p>
+                        <div class="w-full max-w-sm relative z-10 flex gap-2">
+                            <input type="password" value="******" readonly class="w-full bg-wf-gray border border-gray-200 rounded-xl px-4 py-3 text-center tracking-[0.5em] focus:outline-none text-wf-dark text-sm">
+                            <button class="bg-wf-dark text-white px-4 md:px-6 py-3 rounded-xl hover:bg-black transition"><i data-lucide="arrow-right" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-10 md:mt-16 text-center">
+                <a href="/register.html" class="bg-white text-wf-dark px-8 md:px-10 py-4 rounded-full font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg text-sm tracking-wide uppercase inline-block">Попробовать бесплатно</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="benefits" class="py-16 md:py-20 bg-white">
+        <div class="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8">
+            <ul class="space-y-5 md:space-y-8">
+                <li class="flex items-center gap-4 md:gap-5">
+                    <i data-lucide="check" class="w-5 h-5 md:w-6 md:h-6 text-wf-dark flex-shrink-0 stroke-[1.5]"></i>
+                    <span class="text-wf-dark text-base md:text-lg lg:text-xl font-light">Интуитивно понятный интерфейс создания проектов</span>
+                </li>
+                <li class="flex items-center gap-4 md:gap-5">
+                    <i data-lucide="check" class="w-5 h-5 md:w-6 md:h-6 text-wf-dark flex-shrink-0 stroke-[1.5]"></i>
+                    <span class="text-wf-dark text-base md:text-lg lg:text-xl font-light">Автоматическая генерация надежных паролей</span>
+                </li>
+                <li class="flex items-center gap-4 md:gap-5">
+                    <i data-lucide="check" class="w-5 h-5 md:w-6 md:h-6 text-wf-dark flex-shrink-0 stroke-[1.5]"></i>
+                    <span class="text-wf-dark text-base md:text-lg lg:text-xl font-light">Выглядит эстетично на компьютере и мобильном телефоне</span>
+                </li>
+                <li class="flex items-center gap-4 md:gap-5">
+                    <i data-lucide="check" class="w-5 h-5 md:w-6 md:h-6 text-wf-dark flex-shrink-0 stroke-[1.5]"></i>
+                    <span class="text-wf-dark text-base md:text-lg lg:text-xl font-light">Высокая скорость загрузки фото без потери качества</span>
+                </li>
+                <li class="flex items-center gap-4 md:gap-5">
+                    <i data-lucide="check" class="w-5 h-5 md:w-6 md:h-6 text-wf-dark flex-shrink-0 stroke-[1.5]"></i>
+                    <span class="text-wf-dark text-base md:text-lg lg:text-xl font-light">Защищенные ссылки и приватность для ваших клиентов</span>
+                </li>
+                <li class="flex items-center gap-4 md:gap-5">
+                    <i data-lucide="check" class="w-5 h-5 md:w-6 md:h-6 text-wf-dark flex-shrink-0 stroke-[1.5]"></i>
+                    <span class="text-wf-dark text-base md:text-lg lg:text-xl font-light">Возможность пакетного скачивания архивом</span>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <footer class="bg-wf-dark border-t border-white/10 pt-16 md:pt-20 pb-10">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-16 md:mb-20 items-center">
+                <div>
+                    <h2 class="font-display text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6 uppercase tracking-tight leading-tight">LENSFLOW —<br>БОЛЬШЕ ЧЕМ ДИСК</h2>
+                    <p class="text-white/60 text-base md:text-lg font-light leading-relaxed max-w-md">Мы объединили всё, что нужно современному фотографу для красивой и безопасной передачи готовых снимков клиентам.</p>
+                </div>
+                <div class="md:text-right">
+                    <a href="/register.html" class="px-8 py-4 rounded-full border border-white text-white font-medium hover:bg-white hover:text-wf-dark transition-all duration-300 text-sm tracking-wide uppercase inline-block">Создать аккаунт</a>
+                </div>
+            </div>
+            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="font-display font-bold text-xl tracking-wider text-white">LENSFLOW</div>
+                <div class="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-white/50">
+                    <a href="#" class="hover:text-white transition">Помощь</a>
+                    <a href="#" class="hover:text-white transition">Политика конфиденциальности</a>
+                    <a href="#" class="hover:text-white transition">Договор оферты</a>
+                </div>
+                <p class="text-white/30 text-sm">© 2026 Все права защищены</p>
+            </div>
+            <div class="mt-8 pt-6 border-t border-white/5 text-center">
+                <p class="text-white/20 text-xs">Сделано студией <a href="https://maxxmoto.github.io/vexio/" target="_blank" class="text-white/40 hover:text-white transition">Vexio</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-wf-dark/95 border border-white/20 text-white px-5 py-3 rounded-xl shadow-2xl backdrop-blur-xl transition-all duration-300 opacity-0 translate-y-4 pointer-events-none text-sm font-medium whitespace-nowrap"></div>
+
+    <script>
+        lucide.createIcons();
+
+        document.getElementById('menuBtn')?.addEventListener('click', () => {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('menuBtn').querySelector('i');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                if (icon) icon.setAttribute('data-lucide', 'x');
+            } else {
+                menu.classList.add('hidden');
+                if (icon) icon.setAttribute('data-lucide', 'menu');
+            }
+            lucide.createIcons();
+        });
+
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (!nav) return;
+            if (window.scrollY > 50) {
+                nav.classList.remove('bg-transparent');
+                nav.classList.add('bg-wf-dark/90', 'backdrop-blur-md', 'shadow-lg');
+            } else {
+                nav.classList.add('bg-transparent');
+                nav.classList.remove('bg-wf-dark/90', 'backdrop-blur-md', 'shadow-lg');
+            }
+        });
+    </script>
+</body>
+</html>
