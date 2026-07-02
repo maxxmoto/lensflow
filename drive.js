@@ -5,6 +5,7 @@ const fs = require('fs');
 const KEY_PATH = path.join(__dirname, 'sodium-surf-501215-u3-de64e936ad39.json');
 const TOKEN_PATH = path.join(__dirname, 'drive_tokens.json');
 const ROOT_FOLDER_NAME = 'LensFlow';
+const REDIRECT_URI = process.env.DRIVE_REDIRECT || 'http://localhost:3000/api/drive/callback';
 
 let authClient = null;
 let rootFolderId = null;
@@ -22,7 +23,7 @@ async function _initAuth() {
     try {
       const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8'));
       if (tokens.refresh_token && tokens.client_id && tokens.client_secret) {
-        const oauth = new google.auth.OAuth2(tokens.client_id, tokens.client_secret, 'http://localhost:3000/api/drive/callback');
+        const oauth = new google.auth.OAuth2(tokens.client_id, tokens.client_secret, tokens.redirect_uri || REDIRECT_URI);
         oauth.setCredentials({ refresh_token: tokens.refresh_token });
         authClient = oauth;
         return authClient;
@@ -128,7 +129,7 @@ async function findAlbumFolder(albumId, albumTitle) {
 }
 
 function saveTokens(tokens, clientId, clientSecret) {
-  const data = { ...tokens, client_id: clientId, client_secret: clientSecret };
+  const data = { ...tokens, client_id: clientId, client_secret: clientSecret, redirect_uri: REDIRECT_URI };
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(data, null, 2));
   authClient = null;
   authPromise = null;
