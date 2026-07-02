@@ -2,8 +2,7 @@ meta:
   name: lensflow
   environment: node
   toolchain:
-    name: node
-    version: 20
+    name: node:20
 
 build:
   commands:
