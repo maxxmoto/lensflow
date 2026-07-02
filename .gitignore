@@ -1,4 +1,5 @@
 test.txt
+package-lock.json
 node_modules/
 uploads/*
 !uploads/.gitkeep
