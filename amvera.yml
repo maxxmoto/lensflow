@@ -1,15 +1,13 @@
 meta:
   environment: node
   toolchain:
-    name: npm
-    version: "20"
-
+    name: "20"
+    version: latest
 build:
   commands:
     - npm install --production
-
 run:
   command: node server.js
   persistence:
     - /app/uploads
-    - /app/lensflow.db
+    - /app.lensflow.db
