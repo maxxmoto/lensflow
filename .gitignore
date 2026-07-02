@@ -1,6 +1,6 @@
 node_modules/
-uploads/
-*.db
+uploads/*
+!uploads/.gitkeep
 *.db-shm
 *.db-wal
 drive_tokens.json
