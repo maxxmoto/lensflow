@@ -8,6 +8,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { createZipFromDir } = require('./ziputil');
 const drive = require('./drive');
+const uploadQueue = require('./uploadqueue');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -529,17 +530,17 @@ app.post('/api/albums/:id/photos', requireAuth, upload.array('photos', 500), asy
 
   for (const file of req.files) {
     const filePath = path.join(__dirname, 'uploads', 'albums', String(album.id), file.filename);
-    let driveFileId = '';
 
-    try {
-      const driveResult = await drive.uploadPhoto(filePath, file.originalname, album.id, album.title);
-      driveFileId = driveResult.driveFileId;
-      console.log('Uploaded to Drive:', driveFileId);
-    } catch (driveErr) {
-      console.error('Google Drive upload skip (файл сохранён локально):', driveErr.message);
-    }
+    const result = insert.run(album.id, file.filename, file.originalname, file.size, file.mimetype, '');
 
-    const result = insert.run(album.id, file.filename, file.originalname, file.size, file.mimetype, driveFileId);
+    // Queue Drive upload (async — браузер не ждёт)
+    uploadQueue.add({
+      filePath,
+      fileName: file.originalname,
+      albumId: album.id,
+      albumTitle: album.title,
+      photoId: result.lastInsertRowid,
+    });
 
     // Auto-set first photo as cover
     if (!album.cover_photo_id) {
@@ -553,7 +554,7 @@ app.post('/api/albums/:id/photos', requireAuth, upload.array('photos', 500), asy
       original_name: file.originalname,
       size: file.size,
       mime_type: file.mimetype,
-      drive_file_id: driveFileId
+      drive_file_id: ''
     });
   }
 
@@ -730,7 +731,12 @@ app.get('/api/photos/:id/download', async (req, res) => {
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    queue: uploadQueue.getQueueLength(),
+    queue_active: uploadQueue.isWorking()
+  });
 });
 
 // --- Error handling ---
