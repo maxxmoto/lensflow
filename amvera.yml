@@ -1,8 +1,8 @@
 meta:
-  name: lensflow
   environment: node
   toolchain:
-    name: "20"
+    name: npm
+    version: "20"
 
 build:
   commands:
