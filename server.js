@@ -725,6 +725,6 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err.message);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`LensFlow сервер запущен на порту ${PORT}`);
 });
