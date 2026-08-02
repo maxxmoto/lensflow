@@ -725,6 +725,8 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err.message);
 });
 
-app.listen(PORT, () => {
+app.get('/ping', (req, res) => res.send('pong'));
+
+app.listen({ port: PORT, host: '0.0.0.0' }, () => {
   console.log(`LensFlow сервер запущен на порту ${PORT}`);
 });
