@@ -7,8 +7,9 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { createZipFromDir } = require('./ziputil');
-const drive = require('./drive');
-const uploadQueue = require('./uploadqueue');
+// Drive disabled for deployment
+// const drive = require('./drive');
+// const uploadQueue = require('./uploadqueue');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -379,7 +380,7 @@ app.get('/api/albums/:id', requireAuth, (req, res) => {
   res.json({ album: { ...album, cover_filename: coverFilename }, photos });
 });
 
-app.delete('/api/albums/:id', requireAuth, async (req, res) => {
+app.delete('/api/albums/:id', requireAuth, (req, res) => {
   const album = db.prepare('SELECT * FROM albums WHERE id = ? AND user_id = ?').get(req.params.id, req.session.userId);
   if (!album) {
     return res.status(404).json({ error: 'Альбом не найден' });
@@ -390,10 +391,10 @@ app.delete('/api/albums/:id', requireAuth, async (req, res) => {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 
-  try {
-    const folderId = await drive.findAlbumFolder(album.id, album.title);
-    if (folderId) await drive.deleteFolder(folderId);
-  } catch (e) { console.error('Drive folder delete:', e.message); }
+  // try {
+  //   const folderId = await drive.findAlbumFolder(album.id, album.title);
+  //   if (folderId) await drive.deleteFolder(folderId);
+  // } catch (e) { console.error('Drive folder delete:', e.message); }
 
   db.prepare('DELETE FROM likes WHERE photo_id IN (SELECT id FROM photos WHERE album_id = ?)').run(album.id);
   db.prepare('DELETE FROM photos WHERE album_id = ?').run(album.id);
@@ -443,12 +444,12 @@ app.post('/api/albums/:id/generate', requireAuth, (req, res) => {
   });
 });
 
-// --- Google Drive OAuth2 Setup ---
+// --- Google Drive OAuth2 Setup (DISABLED) ---
+/*
 function getDriveOAuthConfig() {
   const envId = process.env.DRIVE_CLIENT_ID;
   const envSecret = process.env.DRIVE_CLIENT_SECRET;
   if (envId && envSecret) return { client_id: envId, client_secret: envSecret };
-
   const files = fs.readdirSync(__dirname).filter(f => f.startsWith('client_secret_') && f.endsWith('.json'));
   if (files.length > 0) {
     try {
@@ -465,57 +466,13 @@ const DRIVE_CLIENT_ID = driveConfig?.client_id || '';
 const DRIVE_CLIENT_SECRET = driveConfig?.client_secret || '';
 const DRIVE_REDIRECT = process.env.DRIVE_REDIRECT || 'http://localhost:3000/api/drive/callback';
 
-app.get('/api/drive/setup', (req, res) => {
-  if (!DRIVE_CLIENT_ID) {
-    return res.send(`
-      <html><body style="background:#111;color:#fff;font-family:sans-serif;padding:40px;text-align:center">
-        <h1>Настройка Google Drive</h1>
-        <p>Положи файл <code>client_secret_*.json</code> в корень папки lensflow</p>
-        <p>или укажите переменные окружения:</p>
-        <pre style="background:#222;padding:20px;border-radius:12px;display:inline-block;text-align:left">
-DRIVE_CLIENT_ID=ваш-client-id
-DRIVE_CLIENT_SECRET=ваш-client-secret
-        </pre>
-        <p><a href="/" style="color:#73503C">Вернуться на главную</a></p>
-      </body></html>
-    `);
-  }
-  res.redirect('/api/drive/auth');
-});
-
-app.get('/api/drive/auth', (req, res) => {
-  if (!DRIVE_CLIENT_ID) return res.redirect('/api/drive/setup');
-  const oauth = new (require('googleapis').google.auth.OAuth2)(DRIVE_CLIENT_ID, DRIVE_CLIENT_SECRET, DRIVE_REDIRECT);
-  const url = oauth.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/drive.file'],
-    prompt: 'consent',
-  });
-  res.redirect(url);
-});
-
-app.get('/api/drive/callback', async (req, res) => {
-  const { code } = req.query;
-  if (!code) return res.status(400).send('No code');
-
-  try {
-    const oauth = new (require('googleapis').google.auth.OAuth2)(DRIVE_CLIENT_ID, DRIVE_CLIENT_SECRET, DRIVE_REDIRECT);
-    const { tokens } = await oauth.getToken(code);
-    require('./drive').saveTokens(tokens, DRIVE_CLIENT_ID, DRIVE_CLIENT_SECRET);
-    res.send(`
-      <html><body style="background:#111;color:#fff;font-family:sans-serif;padding:40px;text-align:center">
-        <h1>✅ Google Drive подключён!</h1>
-        <p>Теперь файлы будут загружаться в ваш Google Drive.</p>
-        <p><a href="/" style="color:#73503C">Вернуться на главную</a></p>
-      </body></html>
-    `);
-  } catch (e) {
-    res.status(500).send('Ошибка авторизации: ' + e.message);
-  }
-});
+app.get('/api/drive/setup', (req, res) => { ... });
+app.get('/api/drive/auth', (req, res) => { ... });
+app.get('/api/drive/callback', async (req, res) => { ... });
+*/
 
 // --- Upload Photos ---
-app.post('/api/albums/:id/photos', requireAuth, upload.array('photos', 500), async (req, res) => {
+app.post('/api/albums/:id/photos', requireAuth, upload.array('photos', 500), (req, res) => {
   const album = db.prepare('SELECT * FROM albums WHERE id = ? AND user_id = ?').get(req.params.id, req.session.userId);
   if (!album) {
     return res.status(404).json({ error: 'Альбом не найден' });
@@ -533,14 +490,14 @@ app.post('/api/albums/:id/photos', requireAuth, upload.array('photos', 500), asy
 
     const result = insert.run(album.id, file.filename, file.originalname, file.size, file.mimetype, '');
 
-    // Queue Drive upload (async — браузер не ждёт)
-    uploadQueue.add({
-      filePath,
-      fileName: file.originalname,
-      albumId: album.id,
-      albumTitle: album.title,
-      photoId: result.lastInsertRowid,
-    });
+    // Queue Drive upload (disabled)
+    // uploadQueue.add({
+    //   filePath,
+    //   fileName: file.originalname,
+    //   albumId: album.id,
+    //   albumTitle: album.title,
+    //   photoId: result.lastInsertRowid,
+    // });
 
     // Auto-set first photo as cover
     if (!album.cover_photo_id) {
@@ -573,9 +530,9 @@ app.delete('/api/photos/:id', requireAuth, (req, res) => {
     fs.unlinkSync(filePath);
   }
 
-  if (photo.drive_file_id) {
-    try { drive.deleteFile(photo.drive_file_id); } catch (e) { console.error('Drive delete failed:', e.message); }
-  }
+  // if (photo.drive_file_id) {
+  //   try { drive.deleteFile(photo.drive_file_id); } catch (e) { console.error('Drive delete failed:', e.message); }
+  // }
 
   db.prepare('DELETE FROM likes WHERE photo_id = ?').run(photo.id);
   db.prepare('DELETE FROM photos WHERE id = ?').run(photo.id);
@@ -584,25 +541,11 @@ app.delete('/api/photos/:id', requireAuth, (req, res) => {
 });
 
 // --- Public Gallery Routes ---
-// Serve gallery photos (with Drive fallback)
-app.get('/api/photo/:albumId/:filename', async (req, res) => {
+// Serve gallery photos (local only)
+app.get('/api/photo/:albumId/:filename', (req, res) => {
   const { albumId, filename } = req.params;
   const filePath = path.join(__dirname, 'uploads', 'albums', albumId, filename);
-
-  if (fs.existsSync(filePath)) {
-    return res.sendFile(filePath);
-  }
-
-  const photo = db.prepare('SELECT drive_file_id, original_name FROM photos WHERE album_id = ? AND filename = ?').get(albumId, filename);
-  if (photo && photo.drive_file_id) {
-    try {
-      const stream = await drive.getFileStream(photo.drive_file_id);
-      res.setHeader('Content-Type', 'image/jpeg');
-      stream.pipe(res);
-      return;
-    } catch (e) {}
-  }
-
+  if (fs.existsSync(filePath)) return res.sendFile(filePath);
   res.status(404).send('Not found');
 });
 
@@ -702,7 +645,7 @@ app.post('/api/photos/:id/like', (req, res) => {
   }
 });
 
-app.get('/api/photos/:id/download', async (req, res) => {
+app.get('/api/photos/:id/download', (req, res) => {
   const photo = db.prepare('SELECT p.*, a.slug FROM photos p JOIN albums a ON p.album_id = a.id WHERE p.id = ?').get(req.params.id);
   if (!photo) {
     return res.status(404).json({ error: 'Фото не найдено' });
@@ -714,18 +657,6 @@ app.get('/api/photos/:id/download', async (req, res) => {
   if (fs.existsSync(filePath)) {
     return res.download(filePath, photo.original_name);
   }
-
-  if (photo.drive_file_id) {
-    try {
-      const stream = await drive.getFileStream(photo.drive_file_id);
-      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(photo.original_name)}"`);
-      stream.pipe(res);
-      return;
-    } catch (e) {
-      return res.status(404).json({ error: 'Файл не найден' });
-    }
-  }
-
   return res.status(404).json({ error: 'Файл не найден' });
 });
 
@@ -734,8 +665,6 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     uptime: process.uptime(),
-    queue: uploadQueue.getQueueLength(),
-    queue_active: uploadQueue.isWorking()
   });
 });
 
@@ -772,26 +701,22 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Auto-cleanup: delete photos older than 10 days from Drive
-async function cleanupOldPhotos() {
-  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
-  const oldPhotos = db.prepare("SELECT id, drive_file_id, filename, album_id FROM photos WHERE drive_file_id != '' AND created_at < ?").all(tenDaysAgo);
-
-  for (const photo of oldPhotos) {
-    const filePath = path.join(__dirname, 'uploads', 'albums', String(photo.album_id), photo.filename);
-    try {
-      await drive.deleteFile(photo.drive_file_id);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      db.prepare('UPDATE photos SET drive_file_id = ? WHERE id = ?').run('', photo.id);
-      console.log('Cleaned up photo', photo.id, 'from Drive');
-    } catch (e) {
-      console.error('Cleanup failed for photo', photo.id, e.message);
-    }
-  }
-}
-
-setInterval(cleanupOldPhotos, 60 * 60 * 1000);
-cleanupOldPhotos();
+// Auto-cleanup: delete photos older than 10 days from Drive (DISABLED)
+// async function cleanupOldPhotos() {
+//   const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+//   const oldPhotos = db.prepare("SELECT id, drive_file_id, filename, album_id FROM photos WHERE drive_file_id != '' AND created_at < ?").all(tenDaysAgo);
+//   for (const photo of oldPhotos) {
+//     const filePath = path.join(__dirname, 'uploads', 'albums', String(photo.album_id), photo.filename);
+//     try {
+//       await drive.deleteFile(photo.drive_file_id);
+//       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+//       db.prepare('UPDATE photos SET drive_file_id = ? WHERE id = ?').run('', photo.id);
+//       console.log('Cleaned up photo', photo.id, 'from Drive');
+//     } catch (e) { console.error('Cleanup failed for photo', photo.id, e.message); }
+//   }
+// }
+// setInterval(cleanupOldPhotos, 60 * 60 * 1000);
+// cleanupOldPhotos();
 
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err.message);
