@@ -11,6 +11,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { createZipFromDir } = require('./ziputil');
 console.log('Modules loaded OK');
+const app = express();
 console.log('App created');
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
