@@ -412,9 +412,9 @@ app.use((err, req, res, next) => {
 process.on('unhandledRejection', (err) => { console.error('Unhandled Rejection:', err.message); });
 process.on('uncaughtException', (err) => { console.error('Uncaught Exception:', err.message); });
 
-app.listen({ port: PORT, host: '0.0.0.0' }, () => {
-  console.log(`LensFlow сервер запущен на порту ${PORT}`);
-});
+const http = require('http');
+http.createServer(app).listen(3000, '0.0.0.0', () => console.log('LensFlow на порту 3000'));
+http.createServer(app).listen(8080, '0.0.0.0', () => console.log('LensFlow на порту 8080'));
 
 } catch (err) {
   console.error('FATAL STARTUP ERROR:', err.message);
