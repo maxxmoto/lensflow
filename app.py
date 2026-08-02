@@ -8,8 +8,9 @@ from functools import wraps
 app = Flask(__name__, static_folder='public', static_url_path='')
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
 
-DB = 'lensflow.db'
-UPLOADS = 'uploads'
+ROOT = os.environ.get('DATA_DIR', '.')
+DB = os.path.join(ROOT, 'lensflow.db')
+UPLOADS = os.path.join(ROOT, 'uploads')
 
 os.makedirs(UPLOADS, exist_ok=True)
 
