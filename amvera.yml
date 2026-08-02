@@ -10,3 +10,6 @@ run:
   ports:
     - 3000
   persistenceMount: /data
+  persistence:
+    - /app/uploads
+    - /app/lensflow.db
