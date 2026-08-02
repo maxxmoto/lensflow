@@ -1,3 +1,6 @@
+console.log('LensFlow starting...');
+
+try {
 const express = require('express');
 const session = require('express-session');
 const Database = require('better-sqlite3');
@@ -7,11 +10,8 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { createZipFromDir } = require('./ziputil');
-// Drive disabled for deployment
-// const drive = require('./drive');
-// const uploadQueue = require('./uploadqueue');
-
-const app = express();
+console.log('Modules loaded OK');
+console.log('App created');
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
@@ -727,6 +727,12 @@ process.on('uncaughtException', (err) => {
 
 app.get('/ping', (req, res) => res.send('pong'));
 
+console.log('Starting server...');
 app.listen({ port: PORT, host: '0.0.0.0' }, () => {
   console.log(`LensFlow сервер запущен на порту ${PORT}`);
 });
+
+} catch (err) {
+  console.error('FATAL STARTUP ERROR:', err.message, err.stack);
+  process.exit(1);
+}
